@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>IP History</title>
+</head>
+<body>
+
+<h2>🔎 IP Communication History</h2>
+
+<form method="POST">
+    <input type="text" name="ip" placeholder="Enter IP address">
+    <button type="submit">Check</button>
+</form>
+
+{% if ip %}
+    <h3>Results for {{ ip }}</h3>
+
+    {% if results %}
+        {% for r in results %}
+            <p>{{ r }}</p>
+        {% endfor %}
+    {% else %}
+        <p>No previous communication found.</p>
+    {% endif %}
+{% endif %}
+
+</body>
+</html>

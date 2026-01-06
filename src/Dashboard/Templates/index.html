@@ -1,0 +1,1406 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>NIDS Dashboard</title>
+    <meta http-equiv="refresh" content="45">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', sans-serif; color: #e2e8f0; min-height: 100vh; overflow-x: hidden; }
+        
+        /* Cyber Grid Background */
+        .cyber-grid {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -2;
+            background: 
+                linear-gradient(90deg, rgba(124, 58, 237, 0.05) 1px, transparent 1px) 0 0 / 50px 50px,
+                linear-gradient(rgba(124, 58, 237, 0.05) 1px, transparent 1px) 0 0 / 50px 50px,
+                linear-gradient(135deg, #0a0a0f 0%, #0f172a 50%, #0a0a0f 100%);
+            animation: gridMove 20s linear infinite;
+        }
+        @keyframes gridMove {
+            0% { transform: translate(0, 0); }
+            100% { transform: translate(50px, 50px); }
+        }
+        
+        /* Pulse Rings */
+        .pulse-ring {
+            position: fixed; border-radius: 50%; border: 2px solid rgba(124, 58, 237, 0.3);
+            animation: ringPulse 4s linear infinite;
+        }
+        
+        @keyframes ringPulse {
+            0% { transform: scale(0.5); opacity: 1; }
+            100% { transform: scale(3); opacity: 0; }
+        }
+        
+        /* Floating Nodes */
+        .floating-node {
+            position: fixed; width: 12px; height: 12px; border-radius: 50%;
+            background: radial-gradient(circle, #7c3aed, #3b82f6);
+            filter: drop-shadow(0 0 8px currentColor);
+            animation: float 6s ease-in-out infinite;
+        }
+        
+        @keyframes float {
+            0%, 100% { transform: translateY(0) rotate(0deg); }
+            50% { transform: translateY(-20px) rotate(180deg); }
+        }
+        
+        /* Data Streams */
+        .data-stream {
+            position: fixed; height: 2px;
+            background: linear-gradient(90deg, transparent, #7c3aed, #a855f7, transparent);
+            filter: blur(1px);
+            animation: streamFlow 3s linear infinite;
+        }
+        
+        @keyframes streamFlow {
+            0% { transform: translateX(-100%); opacity: 0; }
+            50% { opacity: 1; }
+            100% { transform: translateX(100vw); opacity: 0; }
+        }
+        
+        /* Glitch Text Effect */
+        .glitch-text {
+            position: relative;
+            animation: glitch 5s infinite;
+        }
+        
+        .glitch-text::before,
+        .glitch-text::after {
+            content: attr(data-text);
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+        }
+        
+        .glitch-text::before {
+            animation: glitch-top 1s infinite;
+            clip-path: polygon(0 0, 100% 0, 100% 33%, 0 33%);
+            -webkit-clip-path: polygon(0 0, 100% 0, 100% 33%, 0 33%);
+        }
+        
+        .glitch-text::after {
+            animation: glitch-bottom 1.5s infinite;
+            clip-path: polygon(0 67%, 100% 67%, 100% 100%, 0 100%);
+            -webkit-clip-path: polygon(0 67%, 100% 67%, 100% 100%, 0 100%);
+        }
+        
+        @keyframes glitch {
+            0% { transform: translate(0); }
+            20% { transform: translate(-2px, 2px); }
+            40% { transform: translate(-2px, -2px); }
+            60% { transform: translate(2px, 2px); }
+            80% { transform: translate(2px, -2px); }
+            100% { transform: translate(0); }
+        }
+        
+        @keyframes glitch-top {
+            0%, 100% { transform: translate(0); opacity: 0.8; }
+            50% { transform: translate(-2px, -1px); opacity: 0.5; }
+        }
+        
+        @keyframes glitch-bottom {
+            0%, 100% { transform: translate(0); opacity: 0.8; }
+            50% { transform: translate(2px, 1px); opacity: 0.5; }
+        }
+        
+        /* Landing Page */
+        #landing-screen {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            display: flex; justify-content: center; align-items: center;
+            background: rgba(10, 10, 15, 0.85); z-index: 1000;
+            backdrop-filter: blur(5px);
+        }
+        
+        .landing-container {
+            background: rgba(30, 41, 59, 0.3); backdrop-filter: blur(20px);
+            padding: 60px; border-radius: 24px; max-width: 600px; width: 90%;
+            border: 1px solid rgba(124, 58, 237, 0.3);
+            box-shadow: 
+                0 0 50px rgba(124, 58, 237, 0.3),
+                0 0 100px rgba(59, 130, 246, 0.2),
+                inset 0 0 20px rgba(124, 58, 237, 0.1);
+            position: relative;
+            overflow: hidden;
+            animation: containerGlow 3s ease-in-out infinite alternate;
+        }
+        
+        @keyframes containerGlow {
+            0% { box-shadow: 
+                0 0 30px rgba(124, 58, 237, 0.3),
+                0 0 60px rgba(59, 130, 246, 0.2),
+                inset 0 0 20px rgba(124, 58, 237, 0.1); }
+            100% { box-shadow: 
+                0 0 60px rgba(124, 58, 237, 0.5),
+                0 0 120px rgba(59, 130, 246, 0.3),
+                inset 0 0 30px rgba(124, 58, 237, 0.2); }
+        }
+        
+        .landing-container::before {
+            content: '';
+            position: absolute; top: 0; left: -100%;
+            width: 100%; height: 2px;
+            background: linear-gradient(90deg, transparent, #7c3aed, #a855f7, transparent);
+            animation: scanline 3s linear infinite;
+        }
+        
+        @keyframes scanline {
+            0% { left: -100%; }
+            100% { left: 100%; }
+        }
+        
+        .logo {
+            font-size: 64px; margin-bottom: 20px;
+            background: linear-gradient(135deg, #7c3aed, #a855f7, #3b82f6);
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+            background-clip: text;
+            filter: drop-shadow(0 0 10px rgba(124, 58, 237, 0.5));
+            animation: logoFloat 3s ease-in-out infinite;
+        }
+        
+        @keyframes logoFloat {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+        
+        .landing-title {
+            font-size: 36px; font-weight: 800; margin-bottom: 15px;
+            background: linear-gradient(135deg, #fff 0%, #cbd5e1 100%);
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+            background-clip: text;
+            letter-spacing: 1px;
+        }
+        
+        .landing-subtitle {
+            font-size: 16px; color: #94a3b8; margin-bottom: 40px;
+            line-height: 1.6; text-shadow: 0 0 10px rgba(124, 58, 237, 0.3);
+        }
+        
+        .ip-input {
+            width: 100%; padding: 20px; margin-bottom: 30px;
+            background: rgba(15, 23, 42, 0.7); border: 2px solid rgba(124, 58, 237, 0.5);
+            border-radius: 12px; color: #e2e8f0; font-size: 16px;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+        
+        .ip-input:focus {
+            outline: none; border-color: #7c3aed;
+            box-shadow: 0 0 20px rgba(124, 58, 237, 0.4);
+            animation: inputPulse 1s infinite;
+        }
+        
+        @keyframes inputPulse {
+            0%, 100% { box-shadow: 0 0 20px rgba(124, 58, 237, 0.4); }
+            50% { box-shadow: 0 0 30px rgba(124, 58, 237, 0.6); }
+        }
+        
+        .launch-btn {
+            background: linear-gradient(135deg, #7c3aed 0%, #a855f7 50%, #3b82f6 100%);
+            color: white; border: none; padding: 20px; font-size: 18px;
+            border-radius: 12px; cursor: pointer; width: 100%;
+            font-weight: 600; letter-spacing: 1px;
+            position: relative;
+            overflow: hidden;
+            transition: all 0.3s ease;
+            box-shadow: 0 10px 30px rgba(124, 58, 237, 0.4);
+        }
+        
+        .launch-btn::before {
+            content: '';
+            position: absolute; top: 0; left: -100%;
+            width: 100%; height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+            animation: btnShine 2s infinite;
+        }
+        
+        @keyframes btnShine {
+            0% { left: -100%; }
+            100% { left: 100%; }
+        }
+        
+        .launch-btn:hover {
+            transform: translateY(-3px) scale(1.02);
+            box-shadow: 0 15px 40px rgba(124, 58, 237, 0.6);
+        }
+        
+        .launch-btn:active {
+            transform: translateY(0) scale(0.98);
+        }
+        
+        /* Dashboard */
+        .dashboard { display: none; }
+        
+        header {
+            background: rgba(30, 41, 59, 0.8); backdrop-filter: blur(20px);
+            padding: 20px 30px; display: flex; justify-content: space-between;
+            border-bottom: 1px solid rgba(124, 58, 237, 0.3);
+            box-shadow: 0 0 30px rgba(124, 58, 237, 0.2);
+            position: relative;
+        }
+        
+        header::after {
+            content: ''; position: absolute; bottom: 0; left: 0;
+            width: 100%; height: 1px;
+            background: linear-gradient(90deg, transparent, #7c3aed, #a855f7, transparent);
+            animation: headerScan 2s linear infinite;
+        }
+        
+        @keyframes headerScan {
+            0% { transform: translateX(-100%); }
+            100% { transform: translateX(100%); }
+        }
+        
+        .header-actions {
+            display: flex; gap: 15px; align-items: center;
+        }
+        
+        .refresh-countdown {
+            background: rgba(30, 41, 59, 0.6); padding: 10px 20px;
+            border-radius: 20px; display: flex; align-items: center; gap: 12px;
+            border: 1px solid rgba(124, 58, 237, 0.4);
+            animation: countdownPulse 2s ease-in-out infinite;
+        }
+        
+        @keyframes countdownPulse {
+            0%, 100% { box-shadow: 0 0 10px rgba(124, 58, 237, 0.3); }
+            50% { box-shadow: 0 0 20px rgba(124, 58, 237, 0.6); }
+        }
+        
+        .countdown-circle {
+            width: 50px; height: 50px; position: relative;
+        }
+        
+        .countdown-number {
+            position: absolute; top: 50%; left: 50%;
+            transform: translate(-50%, -50%); font-weight: bold; font-size: 18px;
+            text-shadow: 0 0 10px rgba(124, 58, 237, 0.8);
+        }
+        
+        .countdown-svg { transform: rotate(-90deg); }
+        
+        .countdown-circle-bg { fill: none; stroke: rgba(255,255,255,0.1); stroke-width: 4; }
+        
+        .countdown-circle-progress { 
+            fill: none; stroke: url(#gradient); stroke-width: 4; stroke-linecap: round;
+            transition: stroke-dashoffset 0.5s ease;
+            filter: drop-shadow(0 0 5px rgba(124, 58, 237, 0.7));
+        }
+        
+        .container { padding: 30px; }
+        
+        /* Top Action Section */
+        .top-actions {
+            display: flex; gap: 20px; margin-bottom: 30px;
+            align-items: center; flex-wrap: wrap;
+        }
+        
+        .ip-monitor-card {
+            background: rgba(30, 41, 59, 0.4); backdrop-filter: blur(20px);
+            padding: 25px; border-radius: 20px; flex: 1; min-width: 300px;
+            border: 1px solid rgba(124, 58, 237, 0.3);
+            position: relative; overflow: hidden;
+            transition: all 0.3s ease;
+            animation: cardEnter 0.6s ease-out;
+        }
+        
+        @keyframes cardEnter {
+            0% { transform: translateY(-20px); opacity: 0; }
+            100% { transform: translateY(0); opacity: 1; }
+        }
+        
+        .ip-monitor-card::before {
+            content: ''; position: absolute; top: 0; left: 0;
+            width: 100%; height: 100%;
+            background: linear-gradient(45deg, transparent 30%, rgba(124, 58, 237, 0.1) 50%, transparent 70%);
+            animation: cardShine 3s infinite;
+        }
+        
+        .ip-monitor-card:hover {
+            transform: translateY(-5px) scale(1.02);
+            border-color: rgba(124, 58, 237, 0.6);
+            box-shadow: 0 15px 40px rgba(124, 58, 237, 0.3);
+        }
+        
+        .analyze-ip-card {
+            background: rgba(30, 41, 59, 0.4); backdrop-filter: blur(20px);
+            padding: 25px; border-radius: 20px; flex: 1; min-width: 300px;
+            border: 1px solid rgba(59, 130, 246, 0.3);
+            position: relative; overflow: hidden;
+            transition: all 0.3s ease;
+            animation: cardEnter 0.8s ease-out;
+            animation-delay: 0.1s;
+            animation-fill-mode: both;
+        }
+        
+        .analyze-ip-card:hover {
+            transform: translateY(-5px) scale(1.02);
+            border-color: rgba(59, 130, 246, 0.6);
+            box-shadow: 0 15px 40px rgba(59, 130, 246, 0.3);
+        }
+        
+        .cards { display: flex; gap: 20px; margin-bottom: 30px; flex-wrap: wrap; }
+        
+        .card {
+            background: rgba(30, 41, 59, 0.4); backdrop-filter: blur(20px);
+            padding: 25px; border-radius: 20px; flex: 1; min-width: 200px;
+            border: 1px solid rgba(124, 58, 237, 0.3);
+            position: relative; overflow: hidden;
+            transition: all 0.3s ease;
+        }
+        
+        .card::before {
+            content: ''; position: absolute; top: 0; left: 0;
+            width: 100%; height: 100%;
+            background: linear-gradient(45deg, transparent 30%, rgba(124, 58, 237, 0.1) 50%, transparent 70%);
+            animation: cardShine 3s infinite;
+        }
+        
+        @keyframes cardShine {
+            0% { transform: translateX(-100%); }
+            100% { transform: translateX(100%); }
+        }
+        
+        .card:hover {
+            transform: translateY(-5px) scale(1.02);
+            border-color: rgba(124, 58, 237, 0.6);
+            box-shadow: 0 15px 40px rgba(124, 58, 237, 0.3);
+        }
+        
+        .card-icon { font-size: 32px; margin-bottom: 15px; animation: iconFloat 2s ease-in-out infinite; }
+        
+        @keyframes iconFloat {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-5px); }
+        }
+        
+        .card h3 { margin-bottom: 10px; font-size: 14px; color: #94a3b8; }
+        .card p { font-size: 36px; font-weight: bold; }
+        
+        /* CRITICAL ALERTS BOX */
+        .critical-alerts {
+            background: rgba(220, 38, 38, 0.15); backdrop-filter: blur(20px);
+            padding: 30px; border-radius: 20px; margin-bottom: 25px;
+            border: 2px solid rgba(220, 38, 38, 0.5);
+            position: relative; overflow: hidden;
+            animation: criticalPulse 2s infinite;
+        }
+        
+        @keyframes criticalPulse {
+            0%, 100% { box-shadow: 0 0 20px rgba(220, 38, 38, 0.2); }
+            50% { box-shadow: 0 0 40px rgba(220, 38, 38, 0.4); }
+        }
+        
+        .critical-alerts::before {
+            content: ''; position: absolute; top: 0; left: 0;
+            width: 100%; height: 100%;
+            background: linear-gradient(45deg, transparent 30%, rgba(220, 38, 38, 0.1) 50%, transparent 70%);
+            animation: cardShine 2s infinite;
+        }
+        
+        /* CONNECTED DEVICES */
+        .devices-grid {
+            display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+            gap: 15px; margin-top: 15px;
+        }
+        
+        .device-card {
+            background: rgba(15, 23, 42, 0.6); padding: 15px; border-radius: 12px;
+            border: 1px solid rgba(124, 58, 237, 0.3);
+            transition: all 0.3s ease; position: relative; overflow: hidden;
+        }
+        
+        .device-card:hover {
+            transform: translateY(-3px);
+            border-color: rgba(124, 58, 237, 0.6);
+            box-shadow: 0 10px 20px rgba(124, 58, 237, 0.2);
+        }
+        
+        .device-card::before {
+            content: ''; position: absolute; top: 0; left: 0;
+            width: 4px; height: 100%;
+            background: linear-gradient(180deg, #7c3aed, #a855f7);
+            opacity: 0.6;
+        }
+        
+        .device-ip {
+            font-family: 'Courier New', monospace; font-size: 13px; 
+            color: #60a5fa; font-weight: bold;
+            margin-bottom: 5px;
+        }
+        
+        .device-status {
+            display: inline-block; width: 8px; height: 8px;
+            border-radius: 50%; margin-right: 8px;
+            animation: statusPulse 2s infinite;
+        }
+        
+        .status-online { background: #10b981; }
+        .status-offline { background: #6b7280; }
+        
+        @keyframes statusPulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+        
+        .box {
+            background: rgba(30, 41, 59, 0.4); backdrop-filter: blur(20px);
+            padding: 30px; border-radius: 20px; margin-bottom: 25px;
+            border: 1px solid rgba(124, 58, 237, 0.3);
+            position: relative; overflow: hidden;
+        }
+        
+        .box::before {
+            content: ''; position: absolute; top: 0; left: 0;
+            width: 3px; height: 100%;
+            background: linear-gradient(180deg, transparent, #7c3aed, transparent);
+            animation: sideScan 2s linear infinite;
+        }
+        
+        @keyframes sideScan {
+            0% { top: -100%; }
+            100% { top: 100%; }
+        }
+        
+        .btn-group {
+            display: flex; gap: 15px; margin-top: 20px;
+            flex-wrap: wrap;
+        }
+        
+        .action-btn {
+            padding: 12px 24px; border-radius: 12px;
+            border: none; font-weight: 600; cursor: pointer;
+            transition: all 0.3s ease; display: flex; align-items: center;
+            gap: 10px; font-size: 14px;
+        }
+        
+        .btn-new-ip {
+            background: linear-gradient(135deg, #7c3aed, #a855f7);
+            color: white; box-shadow: 0 5px 20px rgba(124, 58, 237, 0.3);
+        }
+        
+        .btn-new-ip:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 30px rgba(124, 58, 237, 0.5);
+        }
+        
+        .analyze-btn {
+            background: linear-gradient(135deg, #3b82f6, #60a5fa);
+            color: white; padding: 15px 30px; font-size: 16px;
+            border: none; border-radius: 12px; cursor: pointer;
+            transition: all 0.3s ease; display: flex; align-items: center;
+            gap: 10px; font-weight: 600;
+            box-shadow: 0 5px 20px rgba(59, 130, 246, 0.3);
+            animation: analyzePulse 2s infinite;
+        }
+        
+        @keyframes analyzePulse {
+            0%, 100% { transform: translateY(0); box-shadow: 0 5px 20px rgba(59, 130, 246, 0.3); }
+            50% { transform: translateY(-2px); box-shadow: 0 8px 25px rgba(59, 130, 246, 0.5); }
+        }
+        
+        .analyze-btn:hover {
+            transform: translateY(-5px) scale(1.05);
+            box-shadow: 0 15px 40px rgba(59, 130, 246, 0.4);
+            animation: none;
+        }
+        
+        input {
+            padding: 16px 20px; width: 100%; margin-bottom: 20px;
+            border-radius: 12px; border: 1px solid rgba(124, 58, 237, 0.4);
+            background: rgba(15, 23, 42, 0.8); color: #e2e8f0;
+            transition: all 0.3s ease;
+        }
+        
+        input:focus {
+            outline: none; border-color: #7c3aed;
+            box-shadow: 0 0 20px rgba(124, 58, 237, 0.4);
+        }
+        
+        ul { list-style: none; padding: 0; max-height: 400px; overflow-y: auto; }
+        ul::-webkit-scrollbar { width: 8px; }
+        ul::-webkit-scrollbar-track { background: rgba(15, 23, 42, 0.3); }
+        ul::-webkit-scrollbar-thumb { background: linear-gradient(135deg, #7c3aed, #a855f7); }
+        
+        li {
+            padding: 16px 20px; margin-bottom: 8px; border-radius: 10px;
+            background: rgba(15, 23, 42, 0.4);
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        li::before {
+            content: ''; position: absolute; left: 0; top: 0;
+            width: 3px; height: 100%;
+            background: linear-gradient(180deg, #7c3aed, #a855f7);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+        
+        li:hover {
+            background: rgba(124, 58, 237, 0.15);
+            transform: translateX(5px);
+        }
+        
+        li:hover::before { opacity: 1; }
+        
+        .attack-item {
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 16px 20px; margin-bottom: 12px; border-radius: 12px;
+            background: rgba(15, 23, 42, 0.4); border-left: 4px solid #7c3aed;
+            transition: all 0.3s ease;
+            position: relative; overflow: hidden;
+        }
+        
+        .attack-item:hover {
+            background: rgba(124, 58, 237, 0.15);
+            transform: translateX(5px);
+            border-left-color: #a855f7;
+        }
+        
+        .attack-count {
+            background: linear-gradient(135deg, #7c3aed, #a855f7);
+            padding: 8px 16px; border-radius: 20px; font-weight: bold;
+            animation: countPulse 2s ease-in-out infinite;
+        }
+        
+        @keyframes countPulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+        
+        /* IP ANALYSIS MODAL */
+        #analysis-modal {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(10, 10, 15, 0.95); z-index: 2000;
+            display: none; justify-content: center; align-items: center;
+            backdrop-filter: blur(10px);
+        }
+        
+        .modal-container {
+            background: rgba(30, 41, 59, 0.3); backdrop-filter: blur(30px);
+            padding: 50px; border-radius: 24px; max-width: 800px; width: 90%;
+            border: 2px solid rgba(124, 58, 237, 0.5);
+            box-shadow: 
+                0 0 60px rgba(124, 58, 237, 0.4),
+                0 0 120px rgba(59, 130, 246, 0.3),
+                inset 0 0 30px rgba(124, 58, 237, 0.2);
+            animation: modalEnter 0.8s ease-out;
+            max-height: 90vh; overflow-y: auto;
+        }
+        
+        @keyframes modalEnter {
+            0% { transform: translateY(50px) scale(0.9); opacity: 0; }
+            100% { transform: translateY(0) scale(1); opacity: 1; }
+        }
+        
+        .modal-header {
+            display: flex; justify-content: space-between; align-items: center;
+            margin-bottom: 30px; position: relative;
+        }
+        
+        .modal-header::after {
+            content: ''; position: absolute; bottom: -15px; left: 0;
+            width: 100%; height: 1px;
+            background: linear-gradient(90deg, transparent, #7c3aed, transparent);
+        }
+        
+        .modal-title {
+            font-size: 32px;
+            background: linear-gradient(135deg, #7c3aed, #a855f7);
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+        }
+        
+        .close-modal {
+            background: rgba(220, 38, 38, 0.2); color: #f87171;
+            border: 1px solid rgba(220, 38, 38, 0.4);
+            padding: 12px 24px; border-radius: 12px;
+            cursor: pointer; font-weight: 600;
+            transition: all 0.3s ease;
+        }
+        
+        .close-modal:hover {
+            background: rgba(220, 38, 38, 0.3);
+            transform: translateY(-2px);
+        }
+        
+        .relationship-graph {
+            display: flex; justify-content: center; align-items: center;
+            gap: 50px; margin: 40px 0; position: relative;
+        }
+        
+        .node {
+            width: 80px; height: 80px; border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 32px; position: relative;
+            background: rgba(15, 23, 42, 0.8);
+            border: 3px solid rgba(124, 58, 237, 0.6);
+            animation: nodeFloat 3s ease-in-out infinite;
+        }
+        
+        @keyframes nodeFloat {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+        
+        .node-label {
+            position: absolute; bottom: -30px; width: 100%;
+            text-align: center; font-size: 14px; color: #94a3b8;
+            font-weight: 600;
+        }
+        
+        .connection-line {
+            height: 2px; flex: 1;
+            background: linear-gradient(90deg, transparent, #7c3aed, #a855f7, transparent);
+            position: relative;
+            animation: lineFlow 3s linear infinite;
+        }
+        
+        @keyframes lineFlow {
+            0% { background-position: 0% 50%; }
+            100% { background-position: 200% 50%; }
+        }
+        
+        .analysis-section {
+            background: rgba(15, 23, 42, 0.6); padding: 25px;
+            border-radius: 15px; margin: 20px 0; border: 1px solid rgba(124, 58, 237, 0.3);
+            animation: sectionEnter 0.5s ease-out;
+            animation-delay: 0.2s;
+            animation-fill-mode: both;
+        }
+        
+        @keyframes sectionEnter {
+            0% { transform: translateY(20px); opacity: 0; }
+            100% { transform: translateY(0); opacity: 1; }
+        }
+        
+        .detail-row {
+            display: flex; justify-content: space-between;
+            padding: 12px 0; border-bottom: 1px solid rgba(124, 58, 237, 0.1);
+        }
+        
+        .detail-row:last-child { border-bottom: none; }
+        
+        .detail-label { color: #94a3b8; }
+        .detail-value { font-weight: 600; }
+        
+        .threat-high { color: #ef4444; }
+        .threat-medium { color: #f59e0b; }
+        .threat-low { color: #10b981; }
+        
+        .alerts-list {
+            max-height: 200px; overflow-y: auto;
+            margin-top: 15px;
+        }
+        
+        .alert-item {
+            padding: 10px 15px; margin-bottom: 8px;
+            background: rgba(15, 23, 42, 0.4); border-radius: 8px;
+            border-left: 3px solid #f59e0b;
+            animation: alertSlide 0.3s ease-out;
+        }
+        
+        @keyframes alertSlide {
+            0% { transform: translateX(-10px); opacity: 0; }
+            100% { transform: translateX(0); opacity: 1; }
+        }
+    </style>
+</head>
+
+<body>
+    <!-- High-end Animated Background -->
+    <div class="cyber-grid"></div>
+    
+    <!-- Landing Screen -->
+    <div id="landing-screen">
+        <div class="landing-container">
+            <div class="logo">
+                <i class="fas fa-shield-alt"></i>
+            </div>
+            <h1 class="landing-title glitch-text" data-text="Network Intrusion Detection System">
+                Network Intrusion Detection System
+            </h1>
+            <p class="landing-subtitle">
+                Enter IP address to monitor network traffic for security threats in real-time
+                <br>Advanced AI-powered threat detection and prevention
+            </p>
+            
+            <input type="text" id="ip-address" class="ip-input" placeholder="Enter IP Address (e.g., 192.168.1.1)" value="192.168.1.1">
+            
+            <button class="launch-btn" id="launch-dashboard">
+                <i class="fas fa-rocket"></i> LAUNCH SECURITY DASHBOARD
+            </button>
+        </div>
+    </div>
+
+    <!-- Main Dashboard -->
+    <div class="dashboard" id="dashboard">
+        <header>
+            <div style="display:flex;align-items:center;gap:15px;">
+                <div style="font-size:28px;background:linear-gradient(135deg,#7c3aed,#a855f7);-webkit-background-clip:text;-webkit-text-fill-color:transparent;">
+                    <i class="fas fa-shield-alt"></i>
+                </div>
+                <span style="font-weight:600;letter-spacing:1px;">NIDS SECURITY DASHBOARD</span>
+                <div class="monitoring-ip" style="background:rgba(124,58,237,0.2);padding:8px 16px;border-radius:20px;border:1px solid rgba(124,58,237,0.4);">
+                    <i class="fas fa-network-wired"></i> Monitoring: <span id="monitoring-ip-display">192.168.1.1</span>
+                </div>
+            </div>
+            
+            <div class="header-actions">
+                <div class="refresh-countdown">
+                    <span style="font-weight:600;">Refresh in</span>
+                    <div class="countdown-circle">
+                        <svg width="50" height="50">
+                            <defs>
+                                <linearGradient id="gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                                    <stop offset="0%" stop-color="#7c3aed" />
+                                    <stop offset="100%" stop-color="#a855f7" />
+                                </linearGradient>
+                            </defs>
+                            <circle class="countdown-circle-bg" cx="25" cy="25" r="22"></circle>
+                            <circle id="countdown-progress" cx="25" cy="25" r="22" class="countdown-circle-progress"></circle>
+                        </svg>
+                        <div id="countdown-number" class="countdown-number">45</div>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <div class="container">
+            <!-- TOP ACTION SECTION -->
+            <div class="top-actions">
+                <div class="ip-monitor-card">
+                    <h3 style="color:#7c3aed;margin-bottom:15px;display:flex;align-items:center;gap:10px;">
+                        <i class="fas fa-eye"></i> Current IP Monitoring
+                    </h3>
+                    <div style="display:flex;align-items:center;gap:15px;margin-bottom:20px;">
+                        <div style="font-size:24px;color:#a855f7;">
+                            <i class="fas fa-satellite-dish"></i>
+                        </div>
+                        <div>
+                            <div style="font-size:20px;font-weight:bold;color:#e2e8f0;">
+                                <span id="current-monitoring-ip">192.168.1.1</span>
+                            </div>
+                            <div style="font-size:14px;color:#94a3b8;">
+                                Active monitoring • Real-time threat detection
+                            </div>
+                        </div>
+                    </div>
+                    <div style="display:flex;gap:10px;">
+                        <input type="text" id="change-ip" placeholder="Change IP address..." style="flex:1;">
+                        <button class="action-btn" onclick="changeMonitoringIP()" 
+                                style="background:rgba(124,58,237,0.3);color:#a855f7;border:1px solid rgba(124,58,237,0.5);">
+                            <i class="fas fa-sync-alt"></i> Update
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="analyze-ip-card">
+                    <h3 style="color:#3b82f6;margin-bottom:15px;display:flex;align-items:center;gap:10px;">
+                        <i class="fas fa-search-plus"></i> IP Relationship Analysis
+                    </h3>
+                    <p style="color:#94a3b8;margin-bottom:20px;font-size:14px;">
+                        Analyze connections and previous communications with any IP address to identify potential threats.
+                    </p>
+                    <button class="analyze-btn" onclick="openAnalysisModal()">
+                        <i class="fas fa-bolt"></i> ANALYZE NEW IP RELATIONSHIP
+                    </button>
+                </div>
+            </div>
+
+            <!-- Stats Cards -->
+            <div class="cards">
+                <div class="card">
+                    <div class="card-icon"><i class="fas fa-chart-bar"></i></div>
+                    <h3>Total Alerts</h3>
+                    <p style="color:#60a5fa;text-shadow:0 0 10px rgba(96,165,250,0.5);">{{ total }}</p>
+                </div>
+                <div class="card">
+                    <div class="card-icon"><i class="fas fa-exclamation-triangle"></i></div>
+                    <h3>High Severity</h3>
+                    <p style="color:#f87171;text-shadow:0 0 10px rgba(248,113,113,0.5);">{{ severities['HIGH'] or 0 }}</p>
+                </div>
+                <div class="card">
+                    <div class="card-icon"><i class="fas fa-exclamation-circle"></i></div>
+                    <h3>Medium Severity</h3>
+                    <p style="color:#fbbf24;text-shadow:0 0 10px rgba(251,191,36,0.5);">{{ severities['MEDIUM'] or 0 }}</p>
+                </div>
+            </div>
+
+            <!-- CRITICAL SUSPICIOUS ACTIVITY -->
+            {% if suspicious_logs and suspicious_logs|length > 0 %}
+            <div class="critical-alerts">
+                <h3 style="color:#f87171;margin-bottom:15px;">
+                    <i class="fas fa-skull-crossbones"></i> CRITICAL SUSPICIOUS ACTIVITY DETECTED
+                </h3>
+                {% for log in suspicious_logs %}
+                <div style="padding:12px;background:rgba(220,38,38,0.1);border-radius:8px;margin-bottom:8px;border-left:4px solid #dc2626;">
+                    <i class="fas fa-fire" style="color:#dc2626;margin-right:10px;"></i>
+                    <span style="font-weight:600;">{{ log }}</span>
+                </div>
+                {% endfor %}
+            </div>
+            {% endif %}
+
+            <!-- Attack Types -->
+            <div class="box">
+                <h3><i class="fas fa-crosshairs"></i> Attack Types Detected</h3>
+                {% for attack, count in attacks.items() %}
+                <div class="attack-item">
+                    <div style="display:flex;align-items:center;gap:15px;">
+                        <i class="fas fa-bug" style="color:#7c3aed;"></i>
+                        <span style="font-weight:500;">{{ attack }}</span>
+                    </div>
+                    <div class="attack-count">{{ count }}</div>
+                </div>
+                {% endfor %}
+            </div>
+
+            <!-- Connected Devices -->
+            <div class="box">
+                <h3><i class="fas fa-network-wired"></i> Connected Devices (Same Network)</h3>
+                {% if connected_devices and connected_devices|length > 0 %}
+                <div class="devices-grid">
+                    {% for device in connected_devices %}
+                    <div class="device-card">
+                        <div style="display:flex;align-items:center;margin-bottom:10px;">
+                            <span class="device-status status-online"></span>
+                            <i class="fas fa-desktop" style="color:#7c3aed;margin-right:10px;"></i>
+                            <span>Device {{ loop.index }}</span>
+                        </div>
+                        <div class="device-ip">{{ device }}</div>
+                        <div style="font-size:12px;color:#94a3b8;">Active • Last seen: Now</div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <div style="text-align:center;padding:40px;">
+                    <i class="fas fa-wifi-slash" style="font-size:48px;color:#6b7280;margin-bottom:20px;"></i>
+                    <p style="color:#94a3b8;font-size:16px;">No devices detected on network</p>
+                    <p style="color:#6b7280;font-size:14px;margin-top:10px;">Scanning for connected devices...</p>
+                </div>
+                {% endif %}
+            </div>
+
+            <!-- Alerts Per IP -->
+            <div class="box">
+                <h3><i class="fas fa-map-marked-alt"></i> Alerts Per IP</h3>
+                {% for ip, count in ip_stats.items() %}
+                <div style="display:flex;justify-content:space-between;align-items:center;
+                    padding:12px;background:rgba(15,23,42,0.4);border-radius:8px;margin-bottom:8px;">
+                    <div>
+                        <i class="fas fa-globe" style="color:#7c3aed;margin-right:10px;"></i>
+                        <span style="font-family:'Courier New',monospace;">{{ ip }}</span>
+                    </div>
+                    <span style="background:rgba(124,58,237,0.2);padding:6px 12px;border-radius:20px;font-weight:bold;">
+                        {{ count }} alerts
+                    </span>
+                </div>
+                {% endfor %}
+            </div>
+
+            <!-- Recent Security Alerts -->
+            <div class="box">
+                <h3><i class="fas fa-list-alt"></i> Recent Security Alerts</h3>
+                <input type="text" id="search" onkeyup="filterLogs()" placeholder="Search alerts by IP, attack type, or severity...">
+                <ul>
+                    {% for log in logs %}
+                    <li>{{ log }}</li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <!-- IP Analysis Modal -->
+    <div id="analysis-modal">
+        <div class="modal-container">
+            <div class="modal-header">
+                <h2 class="modal-title">
+                    <i class="fas fa-link"></i> IP Relationship Analyzer
+                </h2>
+                <button class="close-modal" onclick="closeAnalysisModal()">
+                    <i class="fas fa-times"></i> Close
+                </button>
+            </div>
+            
+            <div style="margin-bottom:30px;">
+                <div style="display:flex;gap:15px;align-items:center;">
+                    <input type="text" id="analysis-ip" class="ip-input" placeholder="Enter IP to analyze (e.g., 192.168.1.100)" style="flex:1;">
+                    <button class="launch-btn" onclick="analyzeIP()" style="width:200px;">
+                        <i class="fas fa-search"></i> ANALYZE IP
+                    </button>
+                </div>
+            </div>
+            
+            <div id="analysis-results" style="display:none;">
+                <!-- Relationship Visualization -->
+                <div class="relationship-graph">
+                    <div class="node">
+                        <i class="fas fa-server"></i>
+                        <div class="node-label">YOUR SYSTEM</div>
+                    </div>
+                    <div class="connection-line"></div>
+                    <div class="node" id="target-node">
+                        <i class="fas fa-globe"></i>
+                        <div class="node-label" id="target-ip">IP ADDRESS</div>
+                    </div>
+                </div>
+                
+                <!-- Connection Analysis -->
+                <div class="analysis-section">
+                    <h4 style="color:#7c3aed;margin-bottom:15px;">
+                        <i class="fas fa-chart-network"></i> Connection Analysis
+                    </h4>
+                    <div class="detail-row">
+                        <span class="detail-label">Target IP Address:</span>
+                        <span class="detail-value" id="prev-comm" style="font-family:'Courier New',monospace;">192.168.1.100</span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-label">Previous Communications:</span>
+                        <span class="detail-value" id="prev-comm-status" style="color:#10b981;font-weight:bold;">YES</span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-label">First Contact:</span>
+                        <span class="detail-value" id="first-contact">2 days ago</span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-label">Last Communication:</span>
+                        <span class="detail-value" id="last-contact">5 minutes ago</span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-label">Communication Count:</span>
+                        <span class="detail-value" id="comm-count" style="color:#f59e0b;">24 times</span>
+                    </div>
+                </div>
+                
+                <!-- Threat Assessment -->
+                <div class="analysis-section">
+                    <h4 style="color:#ef4444;margin-bottom:15px;">
+                        <i class="fas fa-shield-virus"></i> Threat Assessment
+                    </h4>
+                    <div class="detail-row">
+                        <span class="detail-label">Threat Level:</span>
+                        <span class="detail-value" id="threat-level" style="color:#10b981;font-weight:bold;">
+                            <i class="fas fa-shield-alt"></i> LOW RISK
+                        </span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-label">Recommended Action:</span>
+                        <span class="detail-value" id="recomm-action" style="color:#60a5fa;">
+                            <i class="fas fa-eye"></i> MONITOR
+                        </span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-label">Trust Score:</span>
+                        <span class="detail-value">
+                            <div style="display:flex;align-items:center;gap:10px;">
+                                <div style="width:200px;height:8px;background:rgba(30,41,59,0.8);border-radius:4px;overflow:hidden;">
+                                    <div id="trust-bar" style="height:100%;width:85%;background:linear-gradient(90deg,#10b981,#3b82f6);border-radius:4px;"></div>
+                                </div>
+                                <span id="trust-score" style="font-weight:bold;">85%</span>
+                            </div>
+                        </span>
+                    </div>
+                </div>
+                
+                <!-- Previous Alerts -->
+                <div class="analysis-section">
+                    <h4 style="color:#f59e0b;margin-bottom:15px;">
+                        <i class="fas fa-history"></i> Previous Alerts from this IP
+                    </h4>
+                    <div class="alerts-list" id="previous-alerts">
+                        <!-- Alerts will be populated here -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Create high-end background animations
+        function createCyberBackground() {
+            // Create pulse rings
+            for(let i = 0; i < 5; i++) {
+                setTimeout(() => {
+                    const ring = document.createElement('div');
+                    ring.className = 'pulse-ring';
+                    ring.style.left = `${Math.random() * 100}vw`;
+                    ring.style.top = `${Math.random() * 100}vh`;
+                    ring.style.width = ring.style.height = `${Math.random() * 200 + 100}px`;
+                    ring.style.animationDelay = `${Math.random() * 2}s`;
+                    document.body.appendChild(ring);
+                    
+                    setTimeout(() => ring.remove(), 4000);
+                }, i * 1000);
+            }
+            
+            // Create floating nodes
+            for(let i = 0; i < 15; i++) {
+                const node = document.createElement('div');
+                node.className = 'floating-node';
+                node.style.left = `${Math.random() * 100}vw`;
+                node.style.top = `${Math.random() * 100}vh`;
+                node.style.color = i % 3 === 0 ? '#7c3aed' : i % 3 === 1 ? '#3b82f6' : '#a855f7';
+                node.style.animationDelay = `${Math.random() * 6}s`;
+                node.style.animationDuration = `${Math.random() * 3 + 3}s`;
+                document.body.appendChild(node);
+            }
+            
+            // Create data streams
+            setInterval(() => {
+                if(Math.random() > 0.3) {
+                    const stream = document.createElement('div');
+                    stream.className = 'data-stream';
+                    stream.style.top = `${Math.random() * 100}vh`;
+                    stream.style.width = `${Math.random() * 100 + 100}px`;
+                    stream.style.opacity = Math.random() * 0.5 + 0.3;
+                    document.body.appendChild(stream);
+                    
+                    setTimeout(() => stream.remove(), 3000);
+                }
+            }, 500);
+        }
+        
+        // Countdown timer
+        let countdown = 45;
+        const radius = 22;
+        const circumference = 2 * Math.PI * radius;
+        
+        function updateCountdown() {
+            const num = document.getElementById('countdown-number');
+            const prog = document.getElementById('countdown-progress');
+            if(num && prog) {
+                num.textContent = countdown;
+                const offset = circumference - (countdown/45)*circumference;
+                prog.style.strokeDashoffset = offset;
+            }
+            countdown = countdown <= 1 ? 45 : countdown - 1;
+        }
+        
+        // Launch dashboard with cinematic effect
+        document.getElementById('launch-dashboard').addEventListener('click', function() {
+            const ip = document.getElementById('ip-address').value.trim();
+            if(!ip) {
+                // Shake animation for empty input
+                const input = document.getElementById('ip-address');
+                input.style.animation = 'shake 0.5s';
+                setTimeout(() => input.style.animation = '', 500);
+                return;
+            }
+            
+            document.getElementById('monitoring-ip-display').textContent = ip;
+            document.getElementById('current-monitoring-ip').textContent = ip;
+            
+            const landing = document.getElementById('landing-screen');
+            const btn = document.getElementById('launch-dashboard');
+            
+            // Button press effect
+            btn.style.transform = 'scale(0.95)';
+            btn.style.opacity = '0.8';
+            
+            // Create explosion effect
+            for(let i = 0; i < 20; i++) {
+                createParticle(btn);
+            }
+            
+            // Fade out landing
+            setTimeout(() => {
+                landing.style.opacity = '0';
+                landing.style.transform = 'scale(1.1)';
+                landing.style.transition = 'all 0.8s ease';
+            }, 300);
+            
+            // Show dashboard
+            setTimeout(() => {
+                landing.style.display = 'none';
+                const dashboard = document.getElementById('dashboard');
+                dashboard.style.display = 'block';
+                
+                setTimeout(() => {
+                    dashboard.style.opacity = '0';
+                    dashboard.style.transform = 'translateY(50px)';
+                    dashboard.style.transition = 'all 0.8s ease';
+                    
+                    setTimeout(() => {
+                        dashboard.style.opacity = '1';
+                        dashboard.style.transform = 'translateY(0)';
+                    }, 10);
+                }, 10);
+            }, 1000);
+        });
+        
+        // Particle effect for button press
+        function createParticle(btn) {
+            const rect = btn.getBoundingClientRect();
+            const particle = document.createElement('div');
+            particle.style.position = 'fixed';
+            particle.style.width = '6px';
+            particle.style.height = '6px';
+            particle.style.background = `radial-gradient(circle, ${Math.random() > 0.5 ? '#7c3aed' : '#a855f7'}, transparent)`;
+            particle.style.borderRadius = '50%';
+            particle.style.left = `${rect.left + rect.width/2}px`;
+            particle.style.top = `${rect.top + rect.height/2}px`;
+            particle.style.pointerEvents = 'none';
+            particle.style.zIndex = '10000';
+            
+            document.body.appendChild(particle);
+            
+            const angle = Math.random() * Math.PI * 2;
+            const speed = Math.random() * 3 + 2;
+            const dx = Math.cos(angle) * speed;
+            const dy = Math.sin(angle) * speed;
+            
+            let posX = rect.left + rect.width/2;
+            let posY = rect.top + rect.height/2;
+            
+            function animate() {
+                posX += dx;
+                posY += dy;
+                particle.style.left = `${posX}px`;
+                particle.style.top = `${posY}px`;
+                particle.style.opacity = parseFloat(particle.style.opacity || 1) - 0.02;
+                
+                if(parseFloat(particle.style.opacity || 1) > 0) {
+                    requestAnimationFrame(animate);
+                } else {
+                    particle.remove();
+                }
+            }
+            
+            animate();
+        }
+        
+        // Open IP Analysis Modal
+        function openAnalysisModal() {
+            const modal = document.getElementById('analysis-modal');
+            modal.style.display = 'flex';
+            
+            // Reset form
+            document.getElementById('analysis-ip').value = '';
+            document.getElementById('analysis-results').style.display = 'none';
+            
+            // Animate entrance
+            setTimeout(() => {
+                modal.style.opacity = '0';
+                modal.style.transform = 'scale(0.9)';
+                modal.style.transition = 'all 0.3s ease';
+                
+                setTimeout(() => {
+                    modal.style.opacity = '1';
+                    modal.style.transform = 'scale(1)';
+                }, 10);
+            }, 10);
+        }
+        
+        // Close IP Analysis Modal
+        function closeAnalysisModal() {
+            const modal = document.getElementById('analysis-modal');
+            modal.style.opacity = '0';
+            modal.style.transform = 'scale(0.9)';
+            
+            setTimeout(() => {
+                modal.style.display = 'none';
+            }, 300);
+        }
+        
+        // Analyze IP Relationship
+        function analyzeIP() {
+            const ip = document.getElementById('analysis-ip').value.trim();
+            if(!ip) {
+                const input = document.getElementById('analysis-ip');
+                input.style.animation = 'shake 0.5s';
+                setTimeout(() => input.style.animation = '', 500);
+                return;
+            }
+            
+            // Update target IP in visualization
+            document.getElementById('target-ip').textContent = ip;
+            document.getElementById('prev-comm').textContent = ip;
+            
+            // Generate random analysis data
+            const threatLevels = ['LOW RISK', 'MEDIUM RISK', 'HIGH RISK'];
+            const threatColors = ['#10b981', '#f59e0b', '#ef4444'];
+            const actions = ['MONITOR', 'INVESTIGATE', 'BLOCK'];
+            const actionIcons = ['fa-eye', 'fa-search', 'fa-ban'];
+            
+            const threatIndex = Math.floor(Math.random() * 3);
+            const trustScore = Math.floor(Math.random() * 30) + 70;
+            
+            // Update analysis results
+            document.getElementById('prev-comm-status').textContent = Math.random() > 0.2 ? 'YES' : 'NO';
+            document.getElementById('prev-comm-status').style.color = document.getElementById('prev-comm-status').textContent === 'YES' ? '#10b981' : '#f59e0b';
+            document.getElementById('first-contact').textContent = `${Math.floor(Math.random() * 30) + 1} days ago`;
+            document.getElementById('last-contact').textContent = `${Math.floor(Math.random() * 120) + 1} minutes ago`;
+            document.getElementById('comm-count').textContent = `${Math.floor(Math.random() * 50) + 1} times`;
+            
+            // Threat assessment
+            document.getElementById('threat-level').innerHTML = `
+                <i class="fas fa-shield-alt"></i> ${threatLevels[threatIndex]}
+            `;
+            document.getElementById('threat-level').style.color = threatColors[threatIndex];
+            
+            document.getElementById('recomm-action').innerHTML = `
+                <i class="fas ${actionIcons[threatIndex]}"></i> ${actions[threatIndex]}
+            `;
+            
+            // Trust score
+            document.getElementById('trust-bar').style.width = `${trustScore}%`;
+            document.getElementById('trust-score').textContent = `${trustScore}%`;
+            document.getElementById('trust-bar').style.background = trustScore >= 80 ? 'linear-gradient(90deg,#10b981,#3b82f6)' : 
+                                                               trustScore >= 60 ? 'linear-gradient(90deg,#f59e0b,#fbbf24)' : 
+                                                               'linear-gradient(90deg,#ef4444,#f87171)';
+            
+            // Generate previous alerts
+            const alertTypes = [
+                'Port scan detected from this IP',
+                'Brute force attempt on SSH port',
+                'Malicious payload in HTTP request',
+                'SQL injection attempt detected',
+                'DDoS traffic pattern identified',
+                'Unauthorized access attempt',
+                'Suspicious file upload attempt',
+                'Cross-site scripting (XSS) attack'
+            ];
+            
+            const alertsContainer = document.getElementById('previous-alerts');
+            alertsContainer.innerHTML = '';
+            
+            const alertCount = Math.floor(Math.random() * 6);
+            for(let i = 0; i < alertCount; i++) {
+                const alertDiv = document.createElement('div');
+                alertDiv.className = 'alert-item';
+                alertDiv.innerHTML = `
+                    <div style="display:flex;justify-content:space-between;align-items:center;">
+                        <div>
+                            <i class="fas fa-exclamation-triangle" style="color:#f59e0b;margin-right:8px;"></i>
+                            <span>${alertTypes[Math.floor(Math.random() * alertTypes.length)]}</span>
+                        </div>
+                        <span style="color:#94a3b8;font-size:12px;">
+                            ${Math.floor(Math.random() * 24) + 1}h ago
+                        </span>
+                    </div>
+                `;
+                alertsContainer.appendChild(alertDiv);
+            }
+            
+            if(alertCount === 0) {
+                alertsContainer.innerHTML = `
+                    <div style="text-align:center;padding:30px;color:#94a3b8;">
+                        <i class="fas fa-check-circle" style="font-size:32px;margin-bottom:15px;color:#10b981;"></i>
+                        <p style="font-size:16px;margin-bottom:5px;">No previous alerts from this IP</p>
+                        <p style="font-size:14px;">This IP appears to be clean</p>
+                    </div>
+                `;
+            }
+            
+            // Show results with animation
+            const results = document.getElementById('analysis-results');
+            results.style.display = 'block';
+            results.style.opacity = '0';
+            results.style.transform = 'translateY(20px)';
+            
+            setTimeout(() => {
+                results.style.transition = 'all 0.5s ease';
+                results.style.opacity = '1';
+                results.style.transform = 'translateY(0)';
+                
+                // Animate each section with delay
+                const sections = results.querySelectorAll('.analysis-section');
+                sections.forEach((section, index) => {
+                    section.style.animationDelay = `${index * 0.1}s`;
+                });
+            }, 10);
+        }
+        
+        // Change monitoring IP
+        function changeMonitoringIP() {
+            const newIP = document.getElementById('change-ip').value.trim();
+            if(newIP) {
+                document.getElementById('monitoring-ip-display').textContent = newIP;
+                document.getElementById('current-monitoring-ip').textContent = newIP;
+                document.getElementById('change-ip').value = '';
+                
+                // Show success animation
+                const card = document.querySelector('.ip-monitor-card');
+                card.style.borderColor = '#10b981';
+                card.style.boxShadow = '0 0 30px rgba(16, 185, 129, 0.3)';
+                
+                setTimeout(() => {
+                    card.style.borderColor = 'rgba(124, 58, 237, 0.3)';
+                    card.style.boxShadow = 'none';
+                }, 1000);
+            }
+        }
+        
+        // Filter logs function
+        function filterLogs() {
+            const val = document.getElementById("search").value.toLowerCase();
+            document.querySelectorAll("li").forEach(li => {
+                li.style.display = li.textContent.toLowerCase().includes(val) ? "" : "none";
+            });
+        }
+        
+        // Export logs function
+        function exportLogs() {
+            alert("Log export functionality would be implemented here.");
+        }
+        
+        // Clear logs function
+        function clearLogs() {
+            if(confirm("Are you sure you want to clear all logs? This action cannot be undone.")) {
+                alert("Log clearing functionality would be implemented here.");
+            }
+        }
+        
+        // Initialize
+        window.onload = function() {
+            createCyberBackground();
+            
+            const prog = document.getElementById('countdown-progress');
+            if(prog) {
+                prog.style.strokeDasharray = `${circumference} ${circumference}`;
+                prog.style.strokeDashoffset = circumference;
+            }
+            
+            // Start countdown
+            setInterval(updateCountdown, 1000);
+            
+            // Enter key support
+            document.getElementById('ip-address').addEventListener('keypress', function(e) {
+                if(e.key === 'Enter') document.getElementById('launch-dashboard').click();
+            });
+            
+            document.getElementById('analysis-ip').addEventListener('keypress', function(e) {
+                if(e.key === 'Enter') analyzeIP();
+            });
+            
+            document.getElementById('change-ip').addEventListener('keypress', function(e) {
+                if(e.key === 'Enter') changeMonitoringIP();
+            });
+            
+            // Add shake animation
+            const style = document.createElement('style');
+            style.textContent = `
+                @keyframes shake {
+                    0%, 100% { transform: translateX(0); }
+                    25% { transform: translateX(-5px); }
+                    75% { transform: translateX(5px); }
+                }
+            `;
+            document.head.appendChild(style);
+            
+            // Keep creating background animations
+            setInterval(() => {
+                if(Math.random() > 0.7) {
+                    createCyberBackground();
+                }
+            }, 3000);
+        };
+    </script>
+</body>
+</html>

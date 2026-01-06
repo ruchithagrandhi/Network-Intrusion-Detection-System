@@ -1,0 +1,32 @@
+# ------------------------------
+# Ignore third-party tools (Nmap)
+# ------------------------------
+licenses/
+nselib/
+scripts/
+zenmap/
+
+nmap*
+ndiff*
+ncat*
+libcrypto*
+libssl*
+libssh*
+ca-bundle*
+icon*
+3rd-party-licenses*
+CHANGELOG
+COPYING_HIGWIDGETS
+LICENSE
+
+# ------------------------------
+# Logs & runtime files
+# ------------------------------
+logs/
+*.log
+
+# ------------------------------
+# Python cache
+# ------------------------------
+__pycache__/
+*.pyc
